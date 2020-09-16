@@ -10,12 +10,51 @@ describe('Wallet', () => {
     await wallet.init()
   })
 
-  it('deriveAllBySeedPath', async () => {
+  it('deriveAllByMnemonic', async () => {
     try {
-      const result = await wallet.deriveAllBySeedPath("test", "m/0/0")
+      const result = wallet.deriveAllByMnemonic("mandate hat defy case picnic term sea pave rate action aware alien")
       // console.log(result)
-      assert.strictEqual(result.address, "15PPkbBrUMoVfqzGTZyQNnCf6ekbrS5C1d62p4M9GR7oHrda")
-      assert.strictEqual(result.publicKey, "0xc204ebd56b0ecaee61754799b38a1b0b4261e9cd7ff1c2a0863096722e0b2053")
+      assert.strictEqual(result.address, "5Dh7uFDr2sZ4fPJPoRYdpwGTdS38HQsw81PMdKAbESymKynz")
+      assert.strictEqual(result.polkadotAddress, "12dR3aUutepY6vJum4bdy66cV42myiS5CW7qnc9wnY1HWBwM")
+    } catch (err) {
+      console.error(err)
+      assert.throws(() => { }, err)
+    }
+  })
+
+  it('deriveAllByKeyringPairPath', async () => {
+    try {
+      const result = wallet.deriveAllByMnemonic("mandate hat defy case picnic term sea pave rate action aware alien")
+      const result1 = wallet.deriveAllByKeyringPairPath(result.account, "//0")
+      // console.log(result)
+      assert.strictEqual(result1.publicKey, "0x5218bee68c4c79ddaac192625cce9286add4ce9d29719f920c698873ba0f6b07")
+      assert.strictEqual(result1.address, "5DvM8mSPXcUL8T1ck17XFP67BK1tJ4TtnbE8UpVCYdfyY1dC")
+      assert.strictEqual(result1.polkadotAddress, "12reH6hTPPjoZz28heAXPXvG2w1XzN22s5xce7UZ6ihViXnn")
+    } catch (err) {
+      console.error(err)
+      assert.throws(() => { }, err)
+    }
+  })
+
+  it('publicKeyToAddress', async () => {
+    try {
+      const result = wallet.publicKeyToAddress("0x5218bee68c4c79ddaac192625cce9286add4ce9d29719f920c698873ba0f6b07", 0)
+      // console.log(result)
+      assert.strictEqual(result, "12reH6hTPPjoZz28heAXPXvG2w1XzN22s5xce7UZ6ihViXnn")
+    } catch (err) {
+      console.error(err)
+      assert.throws(() => { }, err)
+    }
+  })
+
+  it('createMultiSigAddress', async () => {
+    try {
+      const result = await wallet.createMultiSigAddress([
+        "15o5762QE4UPrUaYcM83HERK7Wzbmgcsxa93NJjkHGH1unvr",
+        "1TMxLj56NtRg3scE7rRo8H9GZJMFXdsJk1GyxCuTRAxTTzU"
+      ], 1)
+      // console.log(result)
+      assert.strictEqual(result, "5GK2KzG8Eyg76RHVvtKyocRpCwYSZVf78HjZW4cN3Ac8fcVe")
     } catch (err) {
       console.error(err)
       assert.throws(() => { }, err)
@@ -35,7 +74,7 @@ describe('Wallet', () => {
 
   it('buildTransferTx', async () => {
     try {
-      const addressInfo = await wallet.deriveAllBySeedPath("test", "m/0/0")
+      const addressInfo = await wallet.deriveAllByMnemonic("test")
       const result = await wallet.buildTransferTx(
         addressInfo.account,
         "15PPkbBrUMoVfqzGTZyQNnCf6ekbrS5C1d62p4M9GR7oHrda",

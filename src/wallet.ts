@@ -2,11 +2,13 @@ import HttpRequestUtil from "@pefish/js-util-httprequest"
 import { ApiPromise, WsProvider } from '@polkadot/api'
 import Keyring, { decodeAddress, encodeAddress } from '@polkadot/keyring'
 import { waitReady } from '@polkadot/wasm-crypto'
-import stringToU8a from '@polkadot/util/string/toU8a'
 import u8aToHex from '@polkadot/util/u8a/toHex'
 import { KeyringPair } from "@polkadot/keyring/types"
+import { u8aSorted } from "@polkadot/util";
+import { blake2AsU8a, schnorrkelKeypairFromSeed } from "@polkadot/util-crypto";
+import * as bip39Lib from 'bip39'
 
-export type Transfer = {
+export type TransferTxType = {
   "from": string,
   "to": string,
   "extrinsic_index": string,
@@ -17,6 +19,12 @@ export type Transfer = {
   "module": string,
   "amount": string,
   "fee": string
+}
+
+export enum Ss58FormatEnum {
+  Polkadot = 0, 
+  Kusama = 2, // Polkadot Canary
+  Generic_Substrate = 42,
 }
 
 export default class Wallet {
@@ -38,7 +46,7 @@ export default class Wallet {
     return result["number"].toNumber()
   }
 
-  async listTrannsfers(): Promise<Transfer[]> {
+  async listTrannsfers(): Promise<TransferTxType[]> {
     const result = await HttpRequestUtil.post(`${this.baseUrl}/api/scan/transfers`, {
       params: {
         "page": 0,
@@ -51,7 +59,7 @@ export default class Wallet {
     return result.data.transfers
   }
 
-  async getTxByHash(hash: string): Promise<Transfer> {
+  async getTxByHash(hash: string): Promise<TransferTxType> {
     const result = await HttpRequestUtil.post(`${this.baseUrl}/api/scan/extrinsic`, {
       params: {
         "hash": hash,
@@ -67,21 +75,70 @@ export default class Wallet {
     return result.data.transfer
   }
 
-  async deriveAllBySeedPath(seed: string, path: string): Promise<{
+  // 波卡中每笔多签交易都需要发起方冻结一小部分DOT，直到多签交易执行了就会自动解冻。因为多签交易占用链上空间，防止大量垃圾多签交易
+  createMultiSigAddress(addresses: string[], threshold: number = 2): string {
+    const prefix = "modlpy/utilisuba";
+    const payload = new Uint8Array(prefix.length + 1 + 32 * addresses.length + 2);
+    payload.set(
+      Array.from(prefix).map((c) => c.charCodeAt(0)),
+      0
+    );
+    payload[prefix.length] = addresses.length << 2;
+    const pubkeys = addresses.map((addr) => decodeAddress(addr));
+    u8aSorted(pubkeys).forEach((pubkey, idx) => {
+      payload.set(pubkey, prefix.length + 1 + idx * 32);
+    });
+    payload[prefix.length + 1 + 32 * addresses.length] = threshold;
+
+    const publicKey = blake2AsU8a(payload);
+    return encodeAddress(publicKey, Number(Ss58FormatEnum.Generic_Substrate));
+  }
+
+  /**
+   * 根据字典生成随机助记码
+   * @returns {*}
+   */
+  getRandomMnemonic (): string {
+    return bip39Lib.generateMnemonic()
+  }
+
+  deriveAllByMnemonic(mnemonic: string): {
     account: KeyringPair,
     publicKey: string,
     address: string,
-  }> {
-    const realSeed = (seed + path).padEnd(32, ' ');
+    polkadotAddress: string
+  } {
     const keyring = new Keyring({
       type: "sr25519",
-      ss58Format: 0,
+      ss58Format: Ss58FormatEnum.Generic_Substrate,
     });
-    const pairAlice = keyring.addFromSeed(stringToU8a(realSeed));
+    const keyringPair = keyring.addFromMnemonic(mnemonic)
+    const publicKey = u8aToHex(keyringPair.publicKey)
     return {
-      publicKey: u8aToHex(pairAlice.publicKey),
-      address: pairAlice.address,
-      account: keyring.addFromSeed(stringToU8a(realSeed)),
+      publicKey,
+      address: keyringPair.address,
+      polkadotAddress: encodeAddress(publicKey, Number(Ss58FormatEnum.Polkadot)),
+      account: keyringPair,
+    }
+  }
+
+  publicKeyToAddress (publicKey: string, ss58Format: Ss58FormatEnum): string {
+    return encodeAddress(publicKey, Number(ss58Format))
+  }
+
+  deriveAllByKeyringPairPath(keyringPair: KeyringPair, path: string): {
+    account: KeyringPair,
+    publicKey: string,
+    address: string,
+    polkadotAddress: string
+  } {
+    const newKeyringPair = keyringPair.derive(path)
+    const publicKey = u8aToHex(newKeyringPair.publicKey)
+    return {
+      publicKey: u8aToHex(newKeyringPair.publicKey),
+      address: newKeyringPair.address,
+      account: newKeyringPair,
+      polkadotAddress: encodeAddress(publicKey, Number(Ss58FormatEnum.Polkadot)),
     }
   }
 
