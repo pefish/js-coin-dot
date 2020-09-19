@@ -8,6 +8,7 @@ describe('Wallet', () => {
   before(async () => {
     wallet = new Wallet()
     await wallet.init()
+    await wallet.initRemote()
   })
 
   it('deriveAllByMnemonic', async () => {
@@ -63,7 +64,7 @@ describe('Wallet', () => {
 
   it('getLatestHeight', async () => {
     try {
-      const result = await wallet.getLatestHeight()
+      const result = await wallet.remote.getLatestHeight()
       // console.log(result)
       assert.strictEqual(result > 0, true)
     } catch (err) {
@@ -75,7 +76,7 @@ describe('Wallet', () => {
   it('buildTransferTx', async () => {
     try {
       const addressInfo = await wallet.deriveAllByMnemonic("test")
-      const result = await wallet.buildTransferTx(
+      const result = await wallet.remote.buildTransferTx(
         addressInfo.account,
         "15PPkbBrUMoVfqzGTZyQNnCf6ekbrS5C1d62p4M9GR7oHrda",
         "100000000000"
@@ -90,7 +91,7 @@ describe('Wallet', () => {
 
   it('getBalance', async () => {
     try {
-      const result = await wallet.getBalance("15PPkbBrUMoVfqzGTZyQNnCf6ekbrS5C1d62p4M9GR7oHrda")
+      const result = await wallet.remote.getBalance("15PPkbBrUMoVfqzGTZyQNnCf6ekbrS5C1d62p4M9GR7oHrda")
       // console.log(result)
       assert.strictEqual(result, "0")
     } catch (err) {
