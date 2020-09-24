@@ -42,6 +42,8 @@ describe('Wallet', () => {
       const result = wallet.publicKeyToAddress("0x5218bee68c4c79ddaac192625cce9286add4ce9d29719f920c698873ba0f6b07", 0)
       // console.log(result)
       assert.strictEqual(result, "12reH6hTPPjoZz28heAXPXvG2w1XzN22s5xce7UZ6ihViXnn")
+      const result1 = wallet.addressToPublicKey("12reH6hTPPjoZz28heAXPXvG2w1XzN22s5xce7UZ6ihViXnn")
+      assert.strictEqual(result1, "0x5218bee68c4c79ddaac192625cce9286add4ce9d29719f920c698873ba0f6b07")
     } catch (err) {
       console.error(err)
       assert.throws(() => { }, err)

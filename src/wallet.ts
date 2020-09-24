@@ -31,6 +31,7 @@ export default class Wallet {
   }
 
 
+
   // 波卡中每笔多签交易都需要发起方冻结一小部分DOT，直到多签交易执行了就会自动解冻。因为多签交易占用链上空间，防止大量垃圾多签交易
   createMultiSigAddress(addresses: string[], threshold: number = 2): string {
     const prefix = "modlpy/utilisuba";
@@ -88,7 +89,14 @@ export default class Wallet {
   }
 
   publicKeyToAddress (publicKey: string, ss58Format: Ss58FormatEnum): string {
+    if (!publicKey.startsWith("0x")) {
+      publicKey = "0x" + publicKey
+    }
     return encodeAddress(publicKey, Number(ss58Format))
+  }
+
+  addressToPublicKey (address: string): string {
+    return u8aToHex(decodeAddress(address))
   }
 
   deriveAllByKeyringPairPath(keyringPair: KeyringPair, path: string): {

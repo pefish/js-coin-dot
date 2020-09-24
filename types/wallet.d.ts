@@ -28,6 +28,7 @@ export default class Wallet {
         polkadotAddress: string;
     };
     publicKeyToAddress(publicKey: string, ss58Format: Ss58FormatEnum): string;
+    addressToPublicKey(address: string): string;
     deriveAllByKeyringPairPath(keyringPair: KeyringPair, path: string): {
         account: KeyringPair;
         publicKey: string;
