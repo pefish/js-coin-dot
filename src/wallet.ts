@@ -1,7 +1,6 @@
 import Keyring, { decodeAddress, encodeAddress } from '@polkadot/keyring'
-import u8aToHex from '@polkadot/util/u8a/toHex'
 import { KeyringPair } from "@polkadot/keyring/types"
-import { u8aSorted } from "@polkadot/util";
+import { u8aSorted, u8aToHex } from "@polkadot/util";
 import { blake2AsU8a } from "@polkadot/util-crypto";
 import * as bip39Lib from 'bip39'
 import Remote from "./remote"
