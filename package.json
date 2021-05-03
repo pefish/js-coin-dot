@@ -1,6 +1,6 @@
 {
   "name": "@pefish/js-coin-dot",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "",
   "keywords": [
     "common",
@@ -25,13 +25,13 @@
     "build": "rm -rf lib && rm -rf types && tsc",
     "test": "mocha --timeout 60000 --exit --require ts-node/register src/**/*.test.ts",
     "t": "mocha --timeout 60000 --exit --require ts-node/register",
-    "prepublish": "yarn test && yarn build"
+    "prepublishOnly": "yarn test && yarn build"
   },
   "dependencies": {
     "@pefish/js-node-assist": "^0.6.18",
     "@pefish/js-util-httprequest": "^0.2.0",
-    "@polkadot/api": "^4.2.1",
-    "@polkadot/keyring": "^6.0.5",
+    "@polkadot/api": "^4.8.1",
+    "@polkadot/keyring": "^6.3.1",
     "bip39": "^3.0.3"
   },
   "devDependencies": {
